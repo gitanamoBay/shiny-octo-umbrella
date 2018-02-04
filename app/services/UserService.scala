@@ -1,7 +1,6 @@
 package services
 
 import javax.inject._
-
 import models.User
 import scalikejdbc._
 import scala.concurrent.Future
@@ -33,7 +32,7 @@ class UserService @Inject()() extends Users {
   }
 
   private def getUserByIdSync(userId:Int):User = {
-    val user = DB readOnly{ implicit s => sql"""SELECT * FROM change_users WHERE id = ${userId}""".map(userMap).single().apply()
+    val user = DB readOnly{ implicit s => sql"""SELECT * FROM change_users WHERE id = $userId""".map(userMap).single().apply()
     }
 
     user.getOrElse(failed)

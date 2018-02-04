@@ -23,12 +23,17 @@ class ApplicationTimer @Inject() (clock: Clock, appLifecycle: ApplicationLifecyc
 
   private val startUpVal:Int = Func()
 
-  Logger.info(s"in order$startUpVal")
+  Logger.info(s"$startUpVal")
 
   private def Func():Int = {
-        DB autoCommit { implicit s =>
-          sql"""INSERT into test (x) VALUES (1)""".execute().apply()
-        }
-    0
+    DB autoCommit { implicit s =>
+      sql"""INSERT into test (x) VALUES (1)""".execute().apply()
+    }
+
+    val count = DB readOnly{ implicit s =>
+      sql"""SELECT COUNT(*) FROM test""".map(_.int(1)).single.apply()
+    }
+
+    count.getOrElse(0)
   }
 }

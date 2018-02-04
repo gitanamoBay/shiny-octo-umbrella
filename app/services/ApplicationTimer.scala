@@ -5,6 +5,7 @@ import javax.inject._
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import scala.concurrent.Future
+import scalikejdbc._
 
 @Singleton
 class ApplicationTimer @Inject() (clock: Clock, appLifecycle: ApplicationLifecycle) {
@@ -25,6 +26,9 @@ class ApplicationTimer @Inject() (clock: Clock, appLifecycle: ApplicationLifecyc
   Logger.info(s"in order$startUpVal")
 
   private def Func():Int = {
+        DB autoCommit { implicit s =>
+          sql"""INSERT into test (x) VALUES (1)""".execute().apply()
+        }
     0
   }
 }

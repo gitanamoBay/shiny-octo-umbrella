@@ -7,7 +7,6 @@ import play.api.mvc._
 import play.api.libs.json._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scalikejdbc._
 
 
 case class IntVector2 (x:Int, y:Int)
@@ -39,18 +38,12 @@ class AsyncController @Inject()(cc: ControllerComponents, actorSystem: ActorSyst
    * a path of `/message`.
    */
   def message = Action.async((req) => {
-    val listOStrings = req.body.asJson.flatMap(jsO => jsO.validate[List[String]].asOpt).get
-
-    DB autoCommit { implicit s =>
-      sql"""INSERT INTO """.execute().apply()
-    }
-
-    getFutureMessage(.map { msg => Ok(msg) }
+    getFutureMessage().map { msg => Ok(msg) }
   })
 
   private def getFutureMessage(): Future[String] = {
     val promise: Promise[String] = Promise[String]()
-    actorSystem.scheduler.scheduleOnce(delayTime) {
+    actorSystem.scheduler.scheduleOnce(1.second) {
       promise.success("Hi!")
     }(actorSystem.dispatcher) // run scheduled tasks using the actor system's dispatcher
     promise.future

@@ -45,7 +45,7 @@ class UserService @Inject()() extends Users {
 
   private def addUserSync(str: String, str1: String): Boolean = {
     DB autoCommit { implicit s =>
-      sql"""INSERT INTO change_user (username, password) VALUES (${str}, ${str1})""".execute().apply()
+      sql"""INSERT INTO change_users (username, password) VALUES ($str, $str1)""".execute().apply()
     }
   }
 

@@ -3,8 +3,8 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
-import models.User
-import play.api.libs.json.Json
+import models.{DefineUser, User}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import services.Users
 
@@ -33,31 +33,25 @@ class UserController @Inject()(cc: ControllerComponents, actorSystem: ActorSyste
     Json.reads[User].reads(x.get).asOpt
   }
 
-  def getAddUserResponse(y: Try[Option[Boolean]]): Result = {
+  def getAddUserResponse(y: Try[Boolean]): Result = {
     y.fold(
       _ => InternalServerError,
-      b => b.fold(
+      f => if (f) {
+        Created
+      } else {
         BadRequest
-      )(f =>
-        if (f) {
-          Created
-        } else {
-          BadRequest
-      })
+      }
     )
   }
 
-  def addUserToDb(u: User): Future[Result] = users.addUser(u.username, u.password).map(getAddUserResponse)
+  def addUserToDb(u: DefineUser): Future[Result] = users.addUser(u.username, u.password).map(getAddUserResponse)
 
-  def addUser: Action[AnyContent] = Action.async((req) => {
-    val opUser = parseUserFromBody(req)
-
-    if(opUser.isEmpty) {
-        Future.successful().map(_ => BadRequest)
+  def addUser(): Action[JsValue] = Action.async(parse.json) { (req: Request[JsValue]) =>
+    val op = req.body.validate[DefineUser].asOpt
+    if (op.nonEmpty) {
+      addUserToDb(op.get)
+    } else {
+      Future.successful("").map(_ => BadRequest)
     }
-    else{
-      addUserToDb(opUser.get)
-    }
-  })
-
+  }
 }

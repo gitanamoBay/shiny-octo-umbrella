@@ -13,7 +13,7 @@ trait Users {
 
   def getUserById(userId: Int): Future[User]
 
-  def addUser(username: String, password: String): Future[Try[Option[Boolean]]]
+  def addUser(username: String, password: String): Future[Try[Boolean]]
 }
 
 @Singleton
@@ -43,15 +43,21 @@ class UserService @Inject()() extends Users {
     user.getOrElse(failed)
   }
 
-  private def addUserSync(str: String, str1: String): Try[Option[Boolean]] = {
+  private def addUserSync(str: String, str1: String): Try[Boolean] = {
     Try{
-      DB autoCommit { implicit s =>
-        sql"""INSERT INTO change_users (username, password) VALUES ($str, $str1)""".map(_.boolean(1)).single.apply
+      val res = DB autoCommit { implicit s =>
+        sql"""INSERT INTO change_users (username, password) VALUES ($str, $str1)""".update.apply
+      }
+
+      if (res == 0) {
+        false
+      } else {
+        true
       }
     }
   }
 
-  def addUser(username: String, password: String): Future[Try[Option[Boolean]]] = {
+  def addUser(username: String, password: String): Future[Try[Boolean]] = {
     Future.successful(addUserSync(username, password))
   }
 

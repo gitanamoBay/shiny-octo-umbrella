@@ -15,3 +15,10 @@ object PublicUser{
 
   implicit def publicUserToJson(u: PublicUser) = Json.toJson(u)
 }
+
+
+case class DefineUser(username: String, password: String)
+
+object DefineUser {
+  implicit val format = Json.format[DefineUser]
+}

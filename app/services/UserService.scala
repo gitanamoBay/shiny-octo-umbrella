@@ -46,7 +46,7 @@ class UserService @Inject()() extends Users {
   private def addUserSync(str: String, str1: String): Try[Boolean] = {
     Try{
       val res = DB autoCommit { implicit s =>
-        sql"""INSERT INTO users (username, password) VALUES ($str, $str1)""".update.apply
+        sql"""INSERT INTO users (username, password) SELECT $str, $str1 WHERE NOT EXISTS(SELECT id FROM users WHERE username = $str)""".update.apply
       }
 
       if (res == 0) {

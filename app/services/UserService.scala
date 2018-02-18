@@ -11,7 +11,7 @@ import scala.util.Try
 trait Users {
   def getUser(username: String): Future[Try[Option[User]]]
 
-  def getUserById(userId: Int): Future[User]
+  def getUserById(userId: Int): Future[Try[Option[User]]]
 
   def addUser(username: String, password: String): Future[Try[Boolean]]
 }
@@ -35,11 +35,12 @@ class UserService @Inject()() extends Users {
     }
   }
 
-  private def getUserByIdSync(userId: Int): User = {
-    val user = DB readOnly { implicit s => sql"""SELECT * FROM users WHERE id = $userId""".map(userMap).single.apply
+  private def getUserByIdSync(userId: Int): Try[Option[User]] = {
+    Try {
+      DB readOnly { implicit s =>
+        sql"""SELECT * FROM users WHERE id = $userId""".map(userMap).single.apply
+      }
     }
-
-    user.getOrElse(failed)
   }
 
   private def addUserSync(str: String, str1: String): Try[Boolean] = {

@@ -14,19 +14,24 @@ import scala.util.Try
 @Singleton
 class UserController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, users: Users)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
-    def getResponse(y: Try[Option[User]]): Result =
-      y.fold(
-        _ => InternalServerError.apply(""),
-        fb => fb.fold(
-          NotFound.apply(""))(
-          fb => Ok.apply(Json.stringify(fb.toPublic))))
+  def getResponse(y: Try[Option[User]]): Result =
+    y.fold(
+      _ => InternalServerError(""),
+      fb => fb.fold(
+        NotFound(""))(
+        fb => Ok(Json.stringify(fb.toPublic))))
 
-  def getTerm(req: Request[AnyContent]): String = req.queryString("username").head
+  def getTerm(req: Request[AnyContent]): Option[String] = req.queryString("username").headOption
 
-  def getUserFromRequest(req: Request[AnyContent]): Future[Result] = users.getUser(getTerm(req)).map(getResponse)
+  def getIdTerm(req: Request[AnyContent]): Option[Int] = Int(req.queryString("id").headOption)
 
-  def getUser: Action[AnyContent] = Action.async(x => getUserFromRequest(x))
-
+  def getUser: Action[AnyContent] = Action.async(x =>
+    getTerm(x).fold(
+      getIdTerm(x).fold(Future.successful(BadRequest("")))
+      (y => users.getUserById(y).map(getResponse))
+    )
+    (y => users.getUser(y).map(getResponse))
+  )
 
   def parseUserFromBody(req: Request[AnyContent]): Option[User] = {
     val x = req.body.asJson

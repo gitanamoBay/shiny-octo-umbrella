@@ -65,7 +65,7 @@ class UserService @Inject()() extends Users {
     Future.successful(getUserByNameSync(username))
   }
 
-  def getUserById(userId: Int): Future[User] = {
+  def getUserById(userId: Int): Future[Try[Option[User]]] = {
     Future.successful(getUserByIdSync(userId))
   }
 }

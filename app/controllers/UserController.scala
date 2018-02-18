@@ -21,9 +21,9 @@ class UserController @Inject()(cc: ControllerComponents, actorSystem: ActorSyste
         NotFound(""))(
         fb => Ok(Json.stringify(fb.toPublic))))
 
-  def getTerm(req: Request[AnyContent]): Option[String] = req.queryString("username").headOption
+  def getTerm(req: Request[AnyContent]): Option[String] = Try(req.queryString("username").head).toOption
 
-  def getIdTerm(req: Request[AnyContent]): Option[Int] = Int(req.queryString("id").headOption)
+  def getIdTerm(req: Request[AnyContent]): Option[Int] = Try(req.queryString("id").head.toInt).toOption
 
   def getUser: Action[AnyContent] = Action.async(x =>
     getTerm(x).fold(

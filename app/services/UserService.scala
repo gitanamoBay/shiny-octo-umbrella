@@ -27,17 +27,16 @@ class UserService @Inject()() extends Users {
     rs.boolean("enabled")
   )
 
-  //this is bad, sql injection! :( todo:parameterize, can be asynced in future
   private def getUserByNameSync(username: String): Try[Option[User]] = {
     Try {
       DB readOnly { implicit s =>
-        sql"""SELECT * FROM change_users WHERE username = $username""".map(userMap).single.apply
+        sql"""SELECT * FROM users WHERE username = $username""".map(userMap).single.apply
       }
     }
   }
 
   private def getUserByIdSync(userId: Int): User = {
-    val user = DB readOnly { implicit s => sql"""SELECT * FROM change_users WHERE id = $userId""".map(userMap).single.apply
+    val user = DB readOnly { implicit s => sql"""SELECT * FROM users WHERE id = $userId""".map(userMap).single.apply
     }
 
     user.getOrElse(failed)
@@ -46,7 +45,7 @@ class UserService @Inject()() extends Users {
   private def addUserSync(str: String, str1: String): Try[Boolean] = {
     Try{
       val res = DB autoCommit { implicit s =>
-        sql"""INSERT INTO change_users (username, password) VALUES ($str, $str1)""".update.apply
+        sql"""INSERT INTO users (username, password) VALUES ($str, $str1)""".update.apply
       }
 
       if (res == 0) {

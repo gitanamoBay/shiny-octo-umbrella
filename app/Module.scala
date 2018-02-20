@@ -17,6 +17,7 @@ class Module extends AbstractModule {
   override def configure(): Unit = {
 
     bind(classOf[Users]).to(classOf[UserService])
+    bind(classOf[Changes]).to(classOf[ChangeService])
   }
 
 }

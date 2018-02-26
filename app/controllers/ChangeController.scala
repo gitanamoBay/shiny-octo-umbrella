@@ -15,6 +15,9 @@ import scala.util.Try
 @Singleton
 class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSystem, changes: Changes)(implicit exec:ExecutionContext) extends AbstractController(cc) {
 
+  def skipValidation(skipVal: Request[AnyContent]): Option[String] = None
+  def takeValidation(skipVal: Request[AnyContent]): Option[String] = None
+
   def getResponse(y: Try[Option[Change]]): Result =
     y.fold(
       _ => InternalServerError(""),
@@ -33,5 +36,13 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
   def getById: Action[AnyContent] = Action.async { x =>
     ControllerHelp.getIdTerm(x).fold(Future.successful(BadRequest("")))(
       y => changes.getById(y).map(getResponse))
+  def get(): Action[AnyContent] = Action.async { x =>
+
+    val skipValidationFailure = skipValidation(x)
+
+    if (skipValidationFailure.nonEmpty) Future.successful("").map(_ => BadRequest(skipValidationFailure.get))
+    else{
+      changes.getAllChanges("", 0, 1000).map(_ => BadRequest(""))
+    }
   }
 }

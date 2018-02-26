@@ -1,5 +1,4 @@
 package models
 
-class ChangeSummary {
+case class ChangeSummary()
 
-}

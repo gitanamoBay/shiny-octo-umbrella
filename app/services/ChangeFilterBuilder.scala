@@ -1,6 +1,6 @@
 package services
 
-trait ChangeFilterBuilder{
+trait ChangeFilterBuilder {
 
 }
 

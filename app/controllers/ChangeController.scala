@@ -36,6 +36,8 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
   def getById: Action[AnyContent] = Action.async { x =>
     ControllerHelp.getIdTerm(x).fold(Future.successful(BadRequest("")))(
       y => changes.getById(y).map(getResponse))
+  }
+
   def get(): Action[AnyContent] = Action.async { x =>
 
     val skipValidationFailure = skipValidation(x)

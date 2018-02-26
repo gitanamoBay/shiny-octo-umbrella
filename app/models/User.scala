@@ -8,13 +8,17 @@ case class User(username: String, password: String, id: Int, enabled: Boolean) {
   def toPublic: PublicUser = PublicUser(username, id)
 }
 
-case class PublicUser(username: String, id: Int) {
+case class PublicUser(username: String, id: Int)
+
+object PublicUser {
   implicit val format: OFormat[PublicUser] = Json.format[PublicUser]
 
   implicit def publicUserToJson(u: PublicUser): JsValue = Json.toJson(u)
 }
 
 
-case class DefineUser(username: String, password: String) {
+case class DefineUser(username: String, password: String)
+
+object DefineUser {
   implicit val format: OFormat[DefineUser] = Json.format[DefineUser]
 }

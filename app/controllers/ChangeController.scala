@@ -10,9 +10,17 @@ import play.api.mvc._
 import services.Changes
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 @Singleton
 class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSystem, changes: Changes)(implicit exec:ExecutionContext) extends AbstractController(cc) {
+
+  def getResponse(y: Try[Option[Change]]): Result =
+    y.fold(
+      _ => InternalServerError(""),
+      fb => fb.fold(
+        NotFound(""))(
+        fb => Ok(Json.stringify(fb))))
 
   def getExample(): Action[AnyContent] = Action.async { x =>
     val jsValue: JsValue = Json.parse("{\"val\" : \"x\"}")
@@ -20,5 +28,10 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
       1, 1, 1, 1, jsValue, DateTime.now)
 
     Future.successful("").map(_ => Ok(Json.stringify(change)))
+  }
+
+  def getById: Action[AnyContent] = Action.async { x =>
+    ControllerHelp.getIdTerm(x).fold(Future.successful(BadRequest("")))(
+      y => changes.getById(y).map(getResponse))
   }
 }

@@ -21,13 +21,10 @@ class UserController @Inject()(cc: ControllerComponents, actorSystem: ActorSyste
         NotFound(""))(
         fb => Ok(Json.stringify(fb.toPublic))))
 
-  def getTerm(req: Request[AnyContent]): Option[String] = Try(req.queryString("username").head).toOption
-
-  def getIdTerm(req: Request[AnyContent]): Option[Int] = Try(req.queryString("id").head.toInt).toOption
 
   def getUser: Action[AnyContent] = Action.async(x =>
-    getTerm(x).fold(
-      getIdTerm(x).fold(Future.successful(BadRequest("")))
+    ControllerHelp.getTerm(x).fold(
+      ControllerHelp.getIdTerm(x).fold(Future.successful(BadRequest("")))
       (y => users.getUserById(y).map(getResponse))
     )
     (y => users.getUser(y).map(getResponse))

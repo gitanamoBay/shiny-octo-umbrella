@@ -18,6 +18,7 @@ class Module extends AbstractModule {
 
     bind(classOf[Users]).to(classOf[UserService])
     bind(classOf[Changes]).to(classOf[ChangeService])
+    bind(classOf[FilterBuilder]).to(classOf[ChangeFilterBuilder])
   }
 
 }

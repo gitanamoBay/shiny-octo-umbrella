@@ -12,4 +12,7 @@ GET         /assets/*file        controllers.Assets.versioned(path="/public", fi
 
 
 POST        /user                controllers.UserController.addUser
+
 GET         /change-ex           controllers.ChangeController.getExample
+
+GET         /change              controllers.ChangeController.get

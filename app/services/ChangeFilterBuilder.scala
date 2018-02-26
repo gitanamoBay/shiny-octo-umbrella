@@ -1,9 +1,12 @@
 package services
 
-trait ChangeFilterBuilder {
+import javax.inject.Inject
+
+trait FilterBuilder {
 
 }
 
-object ChangeFilterBuilder extends ChangeFilterBuilder {
+@Singleton
+class ChangeFilterBuilder @Inject()() extends FilterBuilder {
 
 }

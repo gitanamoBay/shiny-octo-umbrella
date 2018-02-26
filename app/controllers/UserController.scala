@@ -3,7 +3,7 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
-import models.{DefineUser, User}
+import models._
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import services.Users
@@ -14,20 +14,12 @@ import scala.util.Try
 @Singleton
 class UserController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, users: Users)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
-  def getResponse(y: Try[Option[User]]): Result =
-    y.fold(
-      _ => InternalServerError(""),
-      fb => fb.fold(
-        NotFound(""))(
-        fb => Ok(Json.stringify(fb.toPublic))))
-
-
   def getUser: Action[AnyContent] = Action.async(x =>
-    ControllerHelp.getTerm(x).fold(
-      ControllerHelp.getIdTerm(x).fold(Future.successful(BadRequest("")))
-      (y => users.getUserById(y).map(getResponse))
+    CommonCalls.getStringTerm(x, "username").fold(
+      CommonCalls.getIntTerm(x, "id").fold(Future.successful(BadRequest("")))
+      (y => users.getUserById(y).map(x => CommonCalls.getResponse(x)(a => Json.stringify(a.toPublic))))
     )
-    (y => users.getUser(y).map(getResponse))
+    (y => users.getUser(y).map(x => CommonCalls.getResponse(x)(a => Json.stringify(a.toPublic))))
   )
 
   def parseUserFromBody(req: Request[AnyContent]): Option[User] = {
@@ -53,7 +45,7 @@ class UserController @Inject()(cc: ControllerComponents, actorSystem: ActorSyste
     if (op.nonEmpty) {
       addUserToDb(op.get)
     } else {
-      Future.successful("").map(_ => BadRequest)
+      Future.successful(BadRequest)
     }
   }
 }

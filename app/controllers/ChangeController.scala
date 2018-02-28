@@ -3,7 +3,7 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
-import models.Change
+import models.{Change, ChangeSummary}
 import org.joda.time.DateTime
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
@@ -18,17 +18,15 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
     if (x >= 0) Option.empty[String] else Option("less than 0")
   }
 
-  def skipValidation(request: Request[AnyContent]): Either[String, Int] = {
+  def skipValidation(value: Option[Int]): Either[String, Int] = {
     val validationsSteps = Seq[Int => Option[String]](
       notNegative
     )
 
-    val skip = CommonCalls.getIntTerm(request, "skip")
+    val validation = validationsSteps.find(s => s(value).nonEmpty)
 
-    validationsSteps.find(s => s(skip).nonEmpty).fold[Either[String, Int]](Either[String, Int](skip.get)(Either[String, Int](1)))
+    if(validation.nonEmpty) Left(validation(value)) else Right(value.get)
   }
-
-  def takeValidation(skipVal: Request[AnyContent]): Either[String, Int] = Either(None,0)
 
   def getExample: Action[AnyContent] = Action.async { _ =>
     val jsValue: JsValue = Json.parse("{\"val\" : \"x\"}")
@@ -44,11 +42,15 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
 
   def get: Action[AnyContent] = Action.async { x =>
 
-    val s = skipValidation(x)
-    val t = takeValidation(x)
+    val s = skipValidation(CommonCalls.getIntTerm(x, "skip"))
+    val t = skipValidation(CommonCalls.getIntTerm(x, "take"))
 
     if (s.isLeft) Future.successful(BadRequest(s.left.get))
     else if (t.isLeft) Future.successful(BadRequest(t.left.get))
-    else changes.getAllChanges("", s.right.get, t.right.get).map(s => CommonCalls.getResponse(s)(x => ""))
+    else changes.getAllChanges("", s.right.get, t.right.get).map(s => CommonCalls.getResponse(s)(mapCollection))
+  }
+
+  def mapCollection(arr: Array[ChangeSummary]): String  = {
+    Json.stringify(Json.arr(arr.map(x => ChangeSummary.summaryToJson(x))))
   }
 }

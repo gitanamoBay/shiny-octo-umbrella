@@ -14,8 +14,21 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSystem, changes: Changes)(implicit exec:ExecutionContext) extends AbstractController(cc) {
 
-  def skipValidation(skipVal: Request[AnyContent]): Either[String,Int] = Either(None,0)
-  def takeValidation(skipVal: Request[AnyContent]): Either[String,Int] = Either(None,0)
+  def notNegative(x: Int): Option[String] = {
+    if (x >= 0) Option.empty[String] else Option("less than 0")
+  }
+
+  def skipValidation(request: Request[AnyContent]): Either[String, Int] = {
+    val validationsSteps = Seq[Int => Option[String]](
+      notNegative
+    )
+
+    val skip = CommonCalls.getIntTerm(request, "skip")
+
+    validationsSteps.find(s => s(skip).nonEmpty).fold[Either[String, Int]](Either[String, Int](skip.get)(Either[String, Int](1)))
+  }
+
+  def takeValidation(skipVal: Request[AnyContent]): Either[String, Int] = Either(None,0)
 
   def getExample: Action[AnyContent] = Action.async { _ =>
     val jsValue: JsValue = Json.parse("{\"val\" : \"x\"}")
@@ -26,7 +39,7 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
 
   def getById: Action[AnyContent] = Action.async { x =>
     CommonCalls.getIntTerm(x, "id").fold(Future.successful(BadRequest("")))(
-      y => changes.getById(y).map(y => CommonCalls.getResponse(y)(x => Json.stringify(x))))
+      y => changes.getById(y).map(s => CommonCalls.getResponse(s)(x => Json.stringify(x))))
   }
 
   def get: Action[AnyContent] = Action.async { x =>
@@ -36,6 +49,6 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
 
     if (s.isLeft) Future.successful(BadRequest(s.left.get))
     else if (t.isLeft) Future.successful(BadRequest(t.left.get))
-    else changes.getAllChanges("", s.right.get, t.right.get).map(_ => BadRequest(""))
+    else changes.getAllChanges("", s.right.get, t.right.get).map(s => CommonCalls.getResponse(s)(x => ""))
   }
 }

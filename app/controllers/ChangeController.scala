@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSystem, changes: Changes)(implicit exec:ExecutionContext) extends AbstractController(cc) {
 
   def notNegative(x: Int): Option[String] = {
-    if (x >= 0) Option.empty[String] else Option("less than 0")
+    if (x >= 0) None else Option("less than 0")
   }
 
   def skipValidation(value: Option[Int]): Either[String, Int] = {

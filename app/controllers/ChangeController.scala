@@ -23,7 +23,7 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
       notNegative
     )
 
-    val validation = validationsSteps.find(s => s(value).nonEmpty)
+    val validation = validationsSteps.flatMap(s => s(value)).headOption
 
     if(validation.nonEmpty) Left(validation(value)) else Right(value.get)
   }

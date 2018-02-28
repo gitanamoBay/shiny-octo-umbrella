@@ -41,7 +41,6 @@ class ChangeController @Inject() (cc: ControllerComponents, actorSystem: ActorSy
   }
 
   def get: Action[AnyContent] = Action.async { x =>
-
     val s = skipValidation(CommonCalls.getIntTerm(x, "skip"))
     val t = skipValidation(CommonCalls.getIntTerm(x, "take"))
 
